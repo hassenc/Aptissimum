@@ -1,3 +1,7 @@
+#Little script to convert the javascript files to an .obj file
+#This will allow to edit them on blender and create new morphs
+#This file is now only adapted for bison.js
+
 output = open('output','w')
 
 idx = 0
@@ -6,7 +10,7 @@ idx3 = 0
 offset = 0
 c1=0
 c2=0
-with open('models/animals/bison.js') as f:
+with open('../models/animals/bison.js') as f:
     lines = f.readlines()
     for idx, line in enumerate(lines):
     	if idx == 18:
