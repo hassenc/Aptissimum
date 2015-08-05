@@ -1,0 +1,75 @@
+<html>
+
+<head>
+    <title>Aptissimum</title>
+    <link rel="stylesheet" type="text/css" href="css/universe.css">
+</head>
+
+<body>
+    <canvas id="heightmap" style="display:none"></canvas>
+    <div id="container"></div>
+    <button id="CameraButton">Camera3D</button>
+    <script src="js/lib/three.js"></script>
+    <script src="js/lib/trackball.js"></script>
+    <script src="js/lib/Detector.js"></script>
+    <script src="js/lib/stats.min.js"></script>
+    <script src="js/lib/threex.keyboardstate.js"></script>
+
+    <script src="js/lib/ImprovedNoise.js"></script>
+    <script src="js/lib/terraingen.js"></script>
+    <script src="js/lib/FastBlur.js"></script>
+    <script src="js/lib/terrain_effects.js"></script>
+    
+    <script src="js/lib/AnimalLight.js"></script>
+
+    <script src="js/lib/ColladaLoader.js"></script>
+
+    <script src="js/global.js"></script>
+    <script src="js/Mover.js"></script>
+    <script src="js/Car.js"></script>
+    <script src="js/MountainLion.js"></script>
+    <!--<script src="js/SimpleUniverse.js"></script>-->
+
+    <script type="x-shader/x-vertex" id="vertexShader">
+
+            varying vec3 vWorldPosition;
+
+            void main() {
+
+                vec4 worldPosition = modelMatrix * vec4( position, 1.0 );
+                vWorldPosition = worldPosition.xyz;
+
+                gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+
+            }
+
+        </script>
+
+        <script type="x-shader/x-fragment" id="fragmentShader">
+
+            uniform vec3 topColor;
+            uniform vec3 bottomColor;
+            uniform float offset;
+            uniform float exponent;
+
+            varying vec3 vWorldPosition;
+
+            void main() {
+
+                float h = normalize( vWorldPosition + offset ).y;
+                gl_FragColor = vec4( mix( bottomColor, topColor, max( pow( max( h , 0.0), exponent ), 0.0 ) ), 1.0 );
+
+            }
+
+        </script>
+
+    <script src="js/Universe.js"></script>
+    <script>
+      var universe = new Universe();
+      universe.init();
+      universe.animate();
+
+    </script>
+</body>
+
+</html>
