@@ -1,6 +1,8 @@
 var MountainLion = function(universe, location, velocity) {
     Mover.call(this, universe, location, velocity);
     this.graphic;
+    this.gradient;
+    this.nomove = false;
     var that = this;
 
     var loader = new THREE.JSONLoader(true);
@@ -56,7 +58,8 @@ MountainLion.prototype.advance = function() {
     // var velV = vel2.projectOnVector(new THREE.Vector3(0, 1, 0));
     // // console.log(velV)
     // var x = velH.add(velV);
-    this.velocity = this.getGradient();
+    this.gradient = this.getGradient();
+    this.velocity = this.gradient;
     this.graphic.updateAnimation(100);
 }
 
@@ -84,6 +87,8 @@ MountainLion.prototype.getGradient = function() {
     var grad = groundPoint2.sub(groundPoint1);
     return grad
 }
+
+
 MountainLion.prototype.update = function() {
     var groundPoint = -1;
     this.GroundRaycaster = new THREE.Raycaster(new THREE.Vector3(this.location.x, 500, this.location.z), (new THREE.Vector3(0, -1, 0)).normalize());
@@ -111,14 +116,10 @@ MountainLion.prototype.update = function() {
     // }
 
     // this.displayVectors();
-    if (!this.nomove) {
-        this.move();
-    }
+
     this.acceleration.multiplyScalar(0);
     if (this.isSteering) {
         this.steer(this.steeringTarget);
     }
-    if (this.graphic) {
-        this.graphic.position.set(this.location.x, this.location.y, this.location.z);
-    }
+    this.move()
 };

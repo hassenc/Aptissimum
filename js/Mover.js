@@ -7,12 +7,14 @@ function Mover(universe, location, velocity) {
     this.mass;
     this.maxSpeed;
     this.displayedVectors = [];
+    this.graphic; //have to be defined
 
     //update or not;
     this.needUpdate = false;
 }
 
-Mover.prototype.move = function() {
+
+Mover.prototype.getNewLocation = function() {
     var oldLocation = new THREE.Vector3(0, 0, 0);
     oldLocation.copy(this.location);
     var vVector = new THREE.Vector3(0, 0, 0);
@@ -20,19 +22,58 @@ Mover.prototype.move = function() {
     var aVector = new THREE.Vector3(0, 0, 0);
     aVector.copy(this.acceleration);
 
-    this.velocity.add(aVector.multiplyScalar(universe.timeStep));
-    this.location.add(vVector.multiplyScalar(universe.timeStep));
 
-    this.location.clamp(new THREE.Vector3(-this.universe.width/2, -100, -this.universe.height/2), new THREE.Vector3(this.universe.width/2, 100, this.universe.height/2));
+    var newLocation = new THREE.Vector3(0, 0, 0);
+    newLocation.copy(oldLocation);
+
+    this.velocity.add(aVector.multiplyScalar(universe.timeStep));
+    newLocation.add(vVector.multiplyScalar(universe.timeStep));
+
+    newLocation.clamp(new THREE.Vector3(-this.universe.width / 2, -100, -this.universe.height / 2), new THREE.Vector3(this.universe.width / 2, 100, this.universe.height / 2));
     this.velocity.clamp(new THREE.Vector3(-this.maxSpeed, -100, -this.maxSpeed), new THREE.Vector3(this.maxSpeed, 100, this.maxSpeed));
 
-    if (oldLocation.equals(this.location)) {
-        this.needUpdate = true;
+    return newLocation;
+}
+
+Mover.prototype.move = function() {
+    if (this.graphic) {
+        var newPosition = this.getNewLocation();
+        var collide = this.checkEdges(newPosition);
+        if (!collide) {
+            this.location = newPosition;
+        }
+        this.graphic.position.set(this.location.x,this.location.y,this.location.z)
+    } else {
+        console.warn("no graphic yet")
     }
 };
 
-Mover.prototype.checkEdges = function() {
-    return 0;
+Mover.prototype.checkEdges = function(newPosition) {
+    var result = false;
+    var colRaycaster = new THREE.Raycaster(new THREE.Vector3(0, 500, 0), (new THREE.Vector3(0, -1, 0)).normalize());
+    var mesh = this.graphic;
+    var directionP;
+    var gradient = new THREE.Vector3(0, 0, 0);
+
+    if (this.gradient) {
+        gradient = this.gradient;
+    }
+
+    for (var vertexIndex = 0; vertexIndex < mesh.geometry.vertices.length; vertexIndex++) {
+        var localVertex = mesh.geometry.vertices[vertexIndex].clone();
+        var globalVertex = localVertex.applyMatrix4(mesh.matrix);
+        var directionVector = globalVertex.sub(newPosition);
+        colRaycaster.set(newPosition, directionVector.clone().normalize());
+
+        var collisionResults = colRaycaster.intersectObjects(this.universe.collidablEntitiyList);
+        if (collisionResults.length > 0 && Math.abs(collisionResults[0].distance - directionVector.length()) < 200) {
+            directionP = directionVector.dot(gradient);
+            if (directionP > 0) {
+                return true;
+            }
+        }
+    }
+    return result;
 };
 
 Mover.prototype.applyForce = function(force, counter) {
@@ -163,4 +204,3 @@ Mover.prototype.displayVectors = function() {
     this.displayVector(this.acceleration, 0x0000ff, 10);
     this.displayVector(this.velocity, 0xff00ff, 12);
 }
-

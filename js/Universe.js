@@ -184,25 +184,12 @@ Universe.prototype.init = function() {
     // this.terrain = ground;
     this.scene.add(this.terrain);
 
-    // var object1 = new PinaCollada('CardboardBoxy', this.scene);
-    // this.scene.add(object1);
 
-
-
-
-
-    // loader.load("models/CardboardBoxy.json", function(geometry, materials) {
-    //     // var mesh = new THREE.Mesh( geometry, new THREE.MeshPhongMaterial( { color: 0xff0000, ambient: 0xff0000 } ) );
-    //     // materials[0].morphTargets = true;
-    //     console.log(materials)
-    //     var material = new THREE.MeshFaceMaterial(materials);
-    //     var mesh = new THREE.Mesh(geometry, material);
-    //     mesh.position.set(0, 0, 0);
-    //     mesh.scale.set(20, 20, 20);
-    //     that.scene.add(mesh);
-    // });
 
     this.mountainLion = new MountainLion(this, new THREE.Vector3(200, 100, 200));
+    this.ent = new Entity(this, new THREE.Vector3(0, 100, 0));
+    this.collidablEntitiyList =[];
+    this.collidablEntitiyList.push(this.ent.graphic);
 
     // for (var j = 1; j < 1; j++) {
     //     car = new Car(this);
@@ -296,11 +283,11 @@ Universe.prototype.render = function() {
         control.pressSpace();
         // control.velocity.add(new THREE.Vector3(0, 10, 0));
     }
-    if (this.keyboard.pressed("pagedown")) {
-        control.nomove = true;
-    } else {
-        control.nomove = false;
-    }
+    // if (this.keyboard.pressed("pagedown")) {
+    //     control.nomove = true;
+    // } else {
+    //     control.nomove = false;
+    // }
     // if (this.keyboard.pressed("down")) {
     //     console.log("steer")
     //     this.cars[0].steer(new THREE.Vector3(4, 0, 4));
