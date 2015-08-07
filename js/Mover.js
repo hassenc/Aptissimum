@@ -68,7 +68,7 @@ Mover.prototype.checkEdges = function(newPosition) {
         var collisionResults = colRaycaster.intersectObjects(this.universe.collidablEntitiyList);
         if (collisionResults.length > 0 && Math.abs(collisionResults[0].distance - directionVector.length()) < 200) {
             directionP = directionVector.dot(gradient);
-            if (directionP > 0) {
+            if (directionP >= 0) {
                 return true;
             }
         }

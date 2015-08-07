@@ -3,6 +3,7 @@ var MountainLion = function(universe, location, velocity) {
     this.graphic;
     this.gradient;
     this.nomove = false;
+    this.angle = Math.PI / 2;
     var that = this;
 
     var loader = new THREE.JSONLoader(true);
@@ -14,18 +15,15 @@ var MountainLion = function(universe, location, velocity) {
         mesh.duration = 1000;
         var s = 0.35;
         mesh.scale.set(s, s, s);
-        mesh.position.y = 15;
-        mesh.rotation.y = 1.58;
+        mesh.rotation.y = that.angle;
 
         mesh.castShadow = true;
         mesh.receiveShadow = true;
         mesh.material.wireframe = false;
-
         //mesh.materials[0].uniforms.diffuse.value.setHSV( 0.5 + 0.15 * Math.random(), 0.95, 0.95 );
         // mesh.material.uniforms.diffuse.value.setHSV( 0.05, 0.5, 0.85 );
         //mesh.rotation.set( 0, -0.75, 0 );
         mesh.position.set(location.x, location.y, location.z);
-
         mesh.matrixAutoUpdate = true;
         // mesh.updateMatrix();
         mesh.doubleSided = true;
@@ -36,7 +34,6 @@ var MountainLion = function(universe, location, velocity) {
     this.isJumping = false;
     this.maxSpeed = 4;
     this.maxForce = 10;
-    this.angle = Math.PI / 2;
     this.GroundRaycaster = new THREE.Raycaster(new THREE.Vector3(0, 500, 0), (new THREE.Vector3(0, -1, 0)).normalize());
 }
 inherits(Mover, MountainLion);
@@ -53,11 +50,6 @@ MountainLion.prototype.turn = function(isRightTurn) {
 }
 
 MountainLion.prototype.advance = function() {
-    // var vel2 = (new THREE.Vector3(0, 0, 0)).copy(this.velocity);
-    // var velH = new THREE.Vector3(10 * Math.sin(this.angle), 0, 10 * Math.cos(this.angle));
-    // var velV = vel2.projectOnVector(new THREE.Vector3(0, 1, 0));
-    // // console.log(velV)
-    // var x = velH.add(velV);
     this.gradient = this.getGradient();
     this.velocity = this.gradient;
     this.graphic.updateAnimation(100);
@@ -104,18 +96,6 @@ MountainLion.prototype.update = function() {
     if (Math.abs(this.location.y - groundPoint) > 10) {
         this.location.y = groundPoint;
     }
-    // if (this.location.y <= groundPoint) {
-    //     this.isJumping = false;
-    //     if (this.velocity.y < 0) {
-    //         this.velocity.y = 0;
-    //     }
-    // } else {
-    //     console.log("isflying")
-    //     this.velocity.y -= 10;
-    //     this.isJumping = true
-    // }
-
-    // this.displayVectors();
 
     this.acceleration.multiplyScalar(0);
     if (this.isSteering) {

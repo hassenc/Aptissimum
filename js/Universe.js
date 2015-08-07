@@ -165,7 +165,7 @@ Universe.prototype.init = function() {
         heightSegments: 250,
         depth: 61,
         param: 4,
-        filterparam: 7,
+        filterparam: 1,
         filter: [BLUR_FILTER],
         postgen: [MOUNTAINS_COLORS],
         // effect: null,
