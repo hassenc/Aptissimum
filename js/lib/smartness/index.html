@@ -1,0 +1,32 @@
+<html>
+
+<head>
+    <title>Smartness</title>
+</head>
+
+<body>
+    <script src="Net.js"></script>
+    <script>
+    window.net = new Network([9,10, 2]);
+    console.log(net.getWeights())
+    console.log(net.forward([0,0,0,0,0,0,0,0,0]))
+    net.forward([0,0,0,0,0,0,0,0,0], [0,0])
+    console.log(net.getWeights())
+    // for (var i = 0; i < 100000; i++) {
+    //     var x = Math.random() * 100 - 50
+    //     var y = Math.random() * 100 - 50
+    //     // console.log(x,y)
+    //     if (x>0 && y < 0) {
+    //         net.forward([x, y], [0,0,0,1])
+    //     } else if (x>0 && y > 0){
+    //         net.forward([x, y], [0,0,1,0])
+    //     } else if (x<0 && y < 0){
+    //         net.forward([x, y], [0,1,0,0])
+    //     } else if (x<0 && y > 0){
+    //         net.forward([x, y], [1,0,0,0])
+    //     }
+    // };
+    </script>
+</body>
+
+</html>

@@ -8,6 +8,8 @@ var Universe = function() {
     this.cars = [];
     this.morphs = [];
     this.gravity = new THREE.Vector3(0, -10, 0);
+    this.trainingMode = true;
+    this.showGraphics = false;
 
     this.width = 1000;
     this.height = 1000;
@@ -16,14 +18,15 @@ var Universe = function() {
     this.fps = 30;
     this.now;
     this.then = Date.now();
-    this.interval = 1000 / this.fps;
+    this.interval = 90;
     this.delta;
 
     //to detect keyup
     this.upPress = false;
+
 };
 
-Universe.prototype.init = function() {
+Universe.prototype.addDecoration = function() {
     this.camera = new THREE.PerspectiveCamera(35, window.innerWidth / window.innerHeight, 1, 100000);
     this.camera.position.set(-200, 20, 200);
 
@@ -37,45 +40,34 @@ Universe.prototype.init = function() {
     this.controls.dynamicDampingFactor = 0.3;
     this.controls.keys = [65, 83, 68];
 
-
-
     this.scene = new THREE.Scene();
 
     // LIGHTS
-
     var hemiLight = new THREE.HemisphereLight(0xffffff, 0xffffff, 0.6);
     hemiLight.color.setHSL(0.6, 5, 0.6);
     hemiLight.groundColor.setHSL(0.095, 1, 0.75);
     hemiLight.position.set(0, 500, 0);
     this.scene.add(hemiLight);
-
     //
-
     var dirLight = new THREE.DirectionalLight(0xffffff, 1);
     dirLight.color.setHSL(0.1, 1, 0.95);
     dirLight.position.set(-1, 6, 1);
     dirLight.position.multiplyScalar(500);
     this.scene.add(dirLight);
-
     dirLight.castShadow = true;
-
     dirLight.shadowMapWidth = 2048;
     dirLight.shadowMapHeight = 2048;
-
     var d = 600;
-
     dirLight.shadowCameraLeft = -d;
     dirLight.shadowCameraRight = d;
     dirLight.shadowCameraTop = d;
     dirLight.shadowCameraBottom = -d;
-
     dirLight.shadowCameraFar = 3500;
     dirLight.shadowBias = -0.0001;
     dirLight.shadowDarkness = 0.35;
     // dirLight.shadowCameraVisible = true;
 
     // SKYDOME
-
     var vertexShader = document.getElementById('vertexShader').textContent;
     var fragmentShader = document.getElementById('fragmentShader').textContent;
     var uniforms = {
@@ -97,7 +89,6 @@ Universe.prototype.init = function() {
         }
     }
     uniforms.topColor.value.copy(hemiLight.color);
-
     var skyGeo = new THREE.SphereGeometry(4000, 32, 15);
     var skyMat = new THREE.ShaderMaterial({
         vertexShader: vertexShader,
@@ -108,9 +99,6 @@ Universe.prototype.init = function() {
 
     var sky = new THREE.Mesh(skyGeo, skyMat);
     this.scene.add(sky);
-
-
-
     this.renderer = new THREE.WebGLRenderer({
         antialias: true
     });
@@ -122,39 +110,6 @@ Universe.prototype.init = function() {
     this.renderer.shadowMapCullFace = THREE.CullFaceBack;
     this.container = document.getElementById('container');
     this.container.appendChild(this.renderer.domElement);
-
-    var loader = new THREE.ObjectLoader();
-
-
-    // var sLight = new THREE.SpotLight(0xffffff);
-    // sLight.position.set(-1000, 1000, 1000);
-    // sLight.wrapAround = true;
-    // sLight.shadowCameraVisible = true;
-    // this.scene.add(sLight);
-
-    // var aLight = new THREE.AmbientLight(0xffffff);
-    // aLight.shadowCameraVisible = true;
-    // this.scene.add(aLight);
-
-
-
-
-    //add ground
-    var grassTex = THREE.ImageUtils.loadTexture('images/grass.png');
-    grassTex.wrapS = THREE.RepeatWrapping;
-    grassTex.wrapT = THREE.RepeatWrapping;
-    grassTex.repeat.x = 256;
-    grassTex.repeat.y = 256;
-    var groundMat = new THREE.MeshBasicMaterial({
-        map: grassTex
-    });
-
-    var groundGeo = new THREE.PlaneBufferGeometry(400, 400);
-    var ground = new THREE.Mesh(groundGeo, groundMat);
-    ground.position.y = -1.9; //lower it
-    ground.rotation.x = -Math.PI / 2; //-90 degrees around the xaxis
-    ground.doubleSided = true;
-    this.scene.add(ground);
 
     var inParameters = {
         alea: RAND_MT,
@@ -180,22 +135,8 @@ Universe.prototype.init = function() {
     this.terrain = new THREE.Mesh(terrainGeo, terrainMaterial);
     this.terrain.castShadow = true;
     this.terrain.receiveShadow = true;
-
     // this.terrain = ground;
     this.scene.add(this.terrain);
-
-
-
-    this.mountainLion = new MountainLion(this, new THREE.Vector3(200, 100, 200));
-    this.ent = new Entity(this, new THREE.Vector3(0, 100, 0));
-    this.collidablEntitiyList =[];
-    this.collidablEntitiyList.push(this.ent.graphic);
-
-    // for (var j = 1; j < 1; j++) {
-    //     car = new Car(this);
-    //     this.cars.push(car);
-    //     this.scene.add(car.graphic);
-    // };
 
     this.stats = new Stats();
     this.stats.domElement.style.position = 'absolute';
@@ -203,9 +144,44 @@ Universe.prototype.init = function() {
     this.stats.domElement.style.zIndex = 100;
     this.container.appendChild(this.stats.domElement);
     this.keyboard = new THREEx.KeyboardState();
+}
 
-    this.addEvents();
-    this.render();
+Universe.prototype.addControl = function(control) {
+    if (this.keyboard.pressed("left")) {
+        control.turn(false)
+    }
+    if (this.keyboard.pressed("right")) {
+        control.turn(true)
+    }
+    if (this.keyboard.pressed("up")) {
+        this.upPress = true;
+        control.advance();
+    } else {
+        if (this.upPress == true) {
+            control.releaseUp();
+            this.upPress = false;
+        }
+    }
+    if (this.keyboard.pressed("down")) {
+        // var nextVelocity =new THREE.Vector3();
+        // nextVelocity.copy(control.location);
+        // control.location.add(new THREE.Vector3(-Math.sin(this.angle),0,-Math.cos(this.angle)));
+    }
+    if (this.keyboard.pressed("space")) {
+        control.pressSpace();
+        // control.velocity.add(new THREE.Vector3(0, 10, 0));
+    }
+
+
+    // if (this.keyboard.pressed("pagedown")) {
+    //     control.nomove = true;
+    // } else {
+    //     control.nomove = false;
+    // }
+    // if (this.keyboard.pressed("down")) {
+    //     console.log("steer")
+    //     this.cars[0].steer(new THREE.Vector3(4, 0, 4));
+    // }
 }
 
 Universe.prototype.addEvents = function() {
@@ -238,6 +214,19 @@ Universe.prototype.onWindowResize = function() {
 }
 
 
+
+
+Universe.prototype.init = function() {
+    this.addDecoration();
+
+    this.collidablEntitiyList = [];
+    this.game = new BoxGame(this);
+
+
+    this.addEvents();
+    this.render();
+}
+
 Universe.prototype.animate = function() {
     var that = this;
     requestAnimationFrame(function() {
@@ -246,55 +235,18 @@ Universe.prototype.animate = function() {
     this.now = Date.now();
     this.delta = this.now - this.then;
 
-    if (this.delta > this.interval) {
-        this.then = this.now - (this.delta % this.interval);
+    // if (this.delta > this.interval) {
+    //     this.then = this.now - (this.delta % this.interval);
         this.controls.update();
         this.render();
-    };
-    // for (var i = 0; i < this.morphs.length; i++) {
-    // this.morphs[i].updateAnimation(this.delta/10);
-    // }
+    // };
 }
 
 Universe.prototype.render = function() {
-    var control = this.mountainLion;
-    // var control = this.cars[0];
-    if (this.keyboard.pressed("left")) {
-        control.turn(false)
+    // this.addControl(this.game.creatures[0]);
+    this.game.run();
+    if (this.showGraphics) {
+        this.renderer.render(this.scene, this.camera);
     }
-    if (this.keyboard.pressed("right")) {
-        control.turn(true)
-    }
-    if (this.keyboard.pressed("up")) {
-        this.upPress = true;
-        control.advance();
-    } else {
-        if (this.upPress == true) {
-            control.releaseUp();
-            this.upPress = false;
-        }
-    }
-    if (this.keyboard.pressed("down")) {
-        // var nextVelocity =new THREE.Vector3();
-        // nextVelocity.copy(control.location);
-        // control.location.add(new THREE.Vector3(-Math.sin(this.angle),0,-Math.cos(this.angle)));
-    }
-    if (this.keyboard.pressed("space")) {
-        control.pressSpace();
-        // control.velocity.add(new THREE.Vector3(0, 10, 0));
-    }
-    // if (this.keyboard.pressed("pagedown")) {
-    //     control.nomove = true;
-    // } else {
-    //     control.nomove = false;
-    // }
-    // if (this.keyboard.pressed("down")) {
-    //     console.log("steer")
-    //     this.cars[0].steer(new THREE.Vector3(4, 0, 4));
-    // }
-
-    this.mountainLion.update();
-
-    this.renderer.render(this.scene, this.camera);
     this.stats.update();
 }

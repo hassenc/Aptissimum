@@ -42,7 +42,7 @@ Mover.prototype.move = function() {
         if (!collide) {
             this.location = newPosition;
         }
-        this.graphic.position.set(this.location.x,this.location.y,this.location.z)
+        this.graphic.position.set(this.location.x, this.location.y, this.location.z)
     } else {
         console.warn("no graphic yet")
     }
@@ -76,6 +76,35 @@ Mover.prototype.checkEdges = function(newPosition) {
     return result;
 };
 
+Mover.prototype.checkCollision = function(list) {
+    if (list.length == 0) {
+        return false
+    }
+    var colRaycaster = new THREE.Raycaster(new THREE.Vector3(0, 500, 0), (new THREE.Vector3(0, -1, 0)).normalize());
+    for (var vertexIndex = 0; vertexIndex < this.graphic.geometry.vertices.length; vertexIndex++) {
+        var localVertex = this.graphic.geometry.vertices[vertexIndex].clone();
+        var globalVertex = localVertex.applyMatrix4(this.graphic.matrix);
+        var directionVector = globalVertex.sub(this.graphic.position);
+        colRaycaster.set(this.graphic.position, directionVector.clone().normalize());
+
+        for (var i = 0; i < list.length; i++) {
+            var collisionResults = colRaycaster.intersectObject(list[i].graphic);
+            if (collisionResults.length > 0 && Math.abs(collisionResults[0].distance - directionVector.length()) < 1) {
+                return true;
+            }
+        };
+    }
+    return false
+};
+
+Mover.prototype.checkCollision2 = function(element) {
+    // console.log(element)
+    if (Math.abs(Math.sqrt(this.getPlanDist2(element))) < 20) {
+        return true;
+    }
+    return false
+};
+
 Mover.prototype.applyForce = function(force, counter) {
     var direction = 1;
     if (counter) {
@@ -95,6 +124,12 @@ Mover.prototype.getDist2 = function(p) { // returns distance squared from p
     var dx = p.location.x - this.location.x;
     var dz = p.location.z - this.location.z;
     return (dx * dx + dy * dy + dz * dz);
+};
+
+Mover.prototype.getPlanDist2 = function(p) { // returns distance squared from p
+    var dx = p.location.x - this.location.x;
+    var dz = p.location.z - this.location.z;
+    return (dx * dx + dz * dz);
 };
 
 Mover.prototype.applyFriction = function() {
